@@ -1,0 +1,18 @@
+## Interface: 30300
+## Title: MoronBoxPostal by |cff00ccffMoRoN|r
+## Author: MoRoN
+## LoadOnDemand: 0
+## Dependencies: MoronBoxCore
+## Notes: |cff00ccffMoronBoxPostal|r is a lightweight is a lightweight mailing addon, optimized for Multiboxing.
+## SavedVariablesPerCharacter: MoronBoxPostal_Settings
+
+Core\Main.lua
+Core\Helpers.lua
+
+Locales\enUS.lua
+Locales\Initialize.lua
+
+Interface\Display.lua
+
+Modules\OpenAll.lua
+Modules\Select.lua
