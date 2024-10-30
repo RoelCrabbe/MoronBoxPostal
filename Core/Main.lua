@@ -18,6 +18,7 @@ MBP.DefaultOptions = {
 
 MBP.Session = {
     LoadingSpeed = 0.25,
+    AfterMailTimer = nil,
     Inbox = {
         Mails = {},
         MailboxFrame = nil,
@@ -43,7 +44,7 @@ MBP.Session = {
         Button = nil,
         SelectedMails = {},
         MailIndex = 1,
-        StoredNumMails = 0,
+        TotalMail = 0,
         NumMails = 0,
         SkipFlag = false,
         InvFull = false,
@@ -70,7 +71,9 @@ function MBP:OnEvent(event)
             self.Session.Inbox.CustomMailboxFrame:Hide()
             self.Session.Inbox.CustomMailboxFrame = nil
         end
+        self:ClearAllMailEntries()
         self.Session.Select.SelectedMails = {}
+        self.Session.Inbox.CurrentPage = 1
     end
 end
 

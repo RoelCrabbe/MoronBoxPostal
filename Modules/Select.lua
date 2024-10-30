@@ -25,16 +25,15 @@ function MBP:OpenSelected()
 
     -- Reset Session Storage for selected mails
     self.Session.Select.MailIndex = 1
-    self.Session.OpenAll.StoredNumMails = #self.Session.Select.SelectedMails
-    self.Session.OpenAll.NumMails = #self.Session.Select.SelectedMails -- Get total number of mails
+    self.Session.Select.TotalMail = #self.Session.Select.SelectedMails
+    self.Session.Select.NumMails = #self.Session.Select.SelectedMails -- Get total number of mails
     self.Session.Select.SkipFlag = false
     self.Session.Select.InvFull = false
     self.Session.Select.TotalGold = 0
     table.sort(self.Session.Select.SelectedMails, function(a, b) return a > b end)
 
-    self.Session.Select.Button:Disable()
-    self.Session.Select.Button.Text:SetText(MBP:SL("Processing"))
-
+    self:DisableButtons(1)
+    
     -- Define an update handler for sequential mail processing
     local function OnUpdateHandler(self, elapsed)
         self.LastUpdate = (self.LastUpdate or 0) + elapsed
@@ -43,16 +42,16 @@ function MBP:OpenSelected()
             self:EnableDots()
 
             -- Check for no mails or index out of range
-            if MBP.Session.OpenAll.NumMails == 0 or MBP.Session.Select.MailIndex > MBP.Session.OpenAll.NumMails then
+            if MBP.Session.Select.NumMails == 0 or MBP.Session.Select.MailIndex > MBP.Session.Select.NumMails then
                 if MBP.Session.Select.SkipFlag then MBC:Print(MBP:SL("Some messages may have been skipped.")) end
-                MBP:SelectedMailMessages()
+                MBP:MailProcessingMessage(MBP.Session.Select)
                 MBP:ResetSelectButton()
                 return
             end
 
             -- Get current mail details
             local Index = MBP.Session.Select.SelectedMails[MBP.Session.Select.MailIndex]
-            MBP.Session.OpenAll.NumMails = #MBP.Session.Select.SelectedMails - 1
+            MBP.Session.Select.NumMails = #MBP.Session.Select.SelectedMails - 1
 
             -- Get mail details from SelectedMails list
             local sender, msgSubject, msgMoney, msgCOD, _, msgItem, _, _, msgText, _, isGM = select(3, GetInboxHeaderInfo(Index))
@@ -60,7 +59,7 @@ function MBP:OpenSelected()
             -- Skip mail if it contains a CoD or if it's from a GM
             if (msgCOD and msgCOD > 0) or isGM then
                 MBP.Session.Select.SkipFlag = true
-                MBP.Session.OpenAll.NumMails = #MBP.Session.Select.SelectedMails - 1
+                MBP.Session.Select.NumMails = #MBP.Session.Select.SelectedMails - 1
                 MBP.Session.Select.MailIndex = MBP.Session.Select.MailIndex + 1
                 return
             end
@@ -86,7 +85,7 @@ function MBP:OpenSelected()
 
                         -- Refresh mail count and update display
                         table.remove(MBP.Session.Select.SelectedMails, MBP.Session.Select.MailIndex)
-                        MBP.Session.OpenAll.NumMails = #MBP.Session.Select.SelectedMails
+                        MBP.Session.Select.NumMails = #MBP.Session.Select.SelectedMails
 
                         -- Refresh mail count and update display
                         MBP:UpdateMailboxDisplay()
@@ -106,7 +105,7 @@ function MBP:OpenSelected()
 
                 -- Refresh mail count and update display
                 table.remove(MBP.Session.Select.SelectedMails, MBP.Session.Select.MailIndex)
-                MBP.Session.OpenAll.NumMails = #MBP.Session.Select.SelectedMails
+                MBP.Session.Select.NumMails = #MBP.Session.Select.SelectedMails
 
                 -- Refresh mail count and update display
                 MBP:UpdateMailboxDisplay()
@@ -119,19 +118,19 @@ function MBP:OpenSelected()
                 DeleteInboxItem(Index)
 
                 -- Refresh mail count and update display
-                MBP.Session.OpenAll.NumMails = #MBP.Session.Select.SelectedMails
+                MBP.Session.Select.NumMails = #MBP.Session.Select.SelectedMails
                 MBP:UpdateMailboxDisplay()
                 self.LastUpdate = 0
                 return
             end
 
             MBP.Session.Select.MailIndex = MBP.Session.Select.MailIndex + 1
-            MBP.Session.OpenAll.NumMails = #MBP.Session.Select.SelectedMails
+            MBP.Session.Select.NumMails = #MBP.Session.Select.SelectedMails
 
             -- Check for no mails or index out of range
-            if MBP.Session.OpenAll.NumMails == 0 or MBP.Session.Select.MailIndex > MBP.Session.OpenAll.NumMails then
+            if MBP.Session.Select.NumMails == 0 or MBP.Session.Select.MailIndex > MBP.Session.Select.NumMails then
                 if MBP.Session.Select.SkipFlag then MBC:Print(MBP:SL("Some messages may have been skipped.")) end
-                MBP:SelectedMailMessages()
+                MBP:MailProcessingMessage(MBP.Session.Select)
                 MBP:ResetSelectButton()
                 return
             end
@@ -142,27 +141,8 @@ function MBP:OpenSelected()
     self.Session.Select.Button:SetScript("OnUpdate", OnUpdateHandler)
 end
 
-function MBP:SelectedMailMessages()
-
-    if self.Session.OpenAll.StoredNumMails == 0 then
-        MBC:Print(MBP:SL("There is no mail to process."))
-        return
-    end
-
-    local Msg = ""
-    if self.Session.Select.TotalGold > 0 then
-        Msg = MBP:SL("Total Money Looted")..": ["..GetCoinTextureString(self.Session.Select.TotalGold).."]."
-    end
-
-    MBC:Print(MBP:SL("All Mail Processed", self.Session.OpenAll.StoredNumMails).." "..Msg)
-end
-
 function MBP:ResetSelectButton()
-    self.Session.Select.Button:Enable()
-    self.Session.Select.Button.Text:SetText(MBP:SL("Open"))
-    self.Session.Select.Button:DisableDots()
-    self.Session.Select.Button:SetScript("OnUpdate", nil)
-    MBP:UpdateMailboxDisplay()
+    self:ResetButtons()
     self.Session.Select.SelectedMails = {}
-    self.Session.OpenAll.StoredNumMails = 0
+    self.Session.Select.TotalMail = 0
 end

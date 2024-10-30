@@ -31,8 +31,7 @@ function MBP:OpenAll()
     self.Session.OpenAll.TotalGold = 0
     self.Session.OpenAll.TotalMail = GetInboxNumItems()
 
-    self.Session.OpenAll.Button:Disable()
-    self.Session.OpenAll.Button.Text:SetText(MBP:SL("Processing"))
+    self:DisableButtons(2)
 
     -- Define an update handler for sequential mail processing
     local function OnUpdateHandler(self, elapsed)
@@ -45,8 +44,8 @@ function MBP:OpenAll()
             -- End the process if no more mail is left
             if MBP.Session.OpenAll.NumMails == 0 or MBP.Session.OpenAll.MailIndex < 1 then
                 if MBP.Session.OpenAll.SkipFlag then MBC:Print(MBP:SL("Some messages may have been skipped.")) end
-                MBP:OpelAllMailMessage()
-                MBP:ResetOpenAllButton()
+                MBP:MailProcessingMessage(MBP.Session.OpenAll)
+                MBP:ResetButtons()
                 return
             end
 
@@ -122,8 +121,8 @@ function MBP:OpenAll()
             -- End the process if no more mail is left
             if MBP.Session.OpenAll.NumMails == 0 or MBP.Session.OpenAll.MailIndex < 1 then
                 if MBP.Session.OpenAll.SkipFlag then MBC:Print(MBP:SL("Some messages may have been skipped.")) end
-                MBP:OpelAllMailMessage()
-                MBP:ResetOpenAllButton()
+                MBP:MailProcessingMessage(MBP.Session.OpenAll)
+                MBP:ResetButtons()
                 return
             end
         end
@@ -131,48 +130,4 @@ function MBP:OpenAll()
 
     -- Start the update loop
     self.Session.OpenAll.Button:SetScript("OnUpdate", OnUpdateHandler)
-end
-
--------------------------------------------------------------------------------
--- Open All Helper Functions {{{
--------------------------------------------------------------------------------
-
-function MBP:OpelAllMailMessage()
-
-    if self.Session.OpenAll.TotalMail == 0 then
-        MBC:Print(MBP:SL("There is no mail to process."))
-        return
-    end
-
-    local Msg = ""
-    if self.Session.OpenAll.TotalGold > 0 then
-        Msg = MBP:SL("Total Money Looted")..": ["..GetCoinTextureString(self.Session.OpenAll.TotalGold).."]."
-    end
-
-    MBC:Print(MBP:SL("All Mail Processed", self.Session.OpenAll.TotalMail).." "..Msg)
-end
-
-function MBP:ResetOpenAllButton()
-    self.Session.OpenAll.Button:Enable()
-    self.Session.OpenAll.Button.Text:SetText(MBP:SL("Open All"))
-    self.Session.OpenAll.Button:DisableDots()
-    self.Session.OpenAll.Button:SetScript("OnUpdate", nil)
-    MBP:TooMuchMail()
-    MBP:UpdateMailboxDisplay()
-end
-
-local lastUnseen, lastTime = 0, 0
-function MBP:TooMuchMail()
-    local cur, tot = GetInboxNumItems()
-    if tot - cur ~= lastUnseen or GetTime() - lastTime >= 60 then
-        lastUnseen = tot - cur
-        lastTime = GetTime()
-    end
-
-    if cur >= 50 then
-        MBC:Print(MBP:SL("UnseenMail Full", lastUnseen))
-    elseif lastUnseen > 0 then
-        local timeRemaining = math.max(0, math.floor(lastTime + 60 - GetTime()))
-        MBC:Print(MBP:SL("UnseenMail With Timer", lastUnseen, timeRemaining))
-    end
 end

@@ -7,12 +7,12 @@
 ## SavedVariablesPerCharacter: MoronBoxPostal_Settings
 
 Core\Main.lua
-Core\Helpers.lua
 
 Locales\enUS.lua
 Locales\Initialize.lua
 
 Interface\Display.lua
 
+Modules\Helpers.lua
 Modules\OpenAll.lua
 Modules\Select.lua
